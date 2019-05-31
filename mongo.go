@@ -13,13 +13,10 @@ import (
 
 // This function connects the API with Mongo Database and returns that connection
 func mongoConnect() *mongo.Client {
-	// Connect to MongoDB
-
-	//ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	//client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://neharjashari:nerkoid17051998@ds263856.mlab.com:63856/?authSource=etickets"), nil)
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	//clientOptions := options.Client().ApplyURI("mongodb://neharjashari:nerkoid17051998@ds263856.mlab.com:63856/?authSource=etickets")
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
