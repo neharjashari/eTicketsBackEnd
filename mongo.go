@@ -10,6 +10,7 @@ import (
 
 // *** DB METHODS *** //
 
+
 // This function connects the API with Mongo Database and returns that connection
 func mongoConnect() *mongo.Client {
 	// Connect to MongoDB
@@ -39,6 +40,7 @@ func mongoConnect() *mongo.Client {
 	return client
 }
 
+
 // Get all tracks
 func getAllEvents(client *mongo.Client, token string) []Event {
 	db := client.Database("etickets")
@@ -65,27 +67,35 @@ func getAllEvents(client *mongo.Client, token string) []Event {
 	return events
 }
 
-func checkForDuplicates(client *mongo.Client, ID string, token string) bool {
+
+func checkForDuplicates(client *mongo.Client, ID string, Title string, token string) (bool, string) {
 
 	events := getAllEvents(client, token)
 	bool := false
+	response := ""
 
 	for i := range events {
 		if events[i].ID == ID {
 			bool = true
+			response = "An event with that ID already is in your database."
+		} else if events[i].Title == Title {
+			bool = true
+			response = "An event with that Title already is in your database."
 		}
 	}
 
-	return bool
+	return bool, response
 }
+
 
 // Delete all events
 func deleteAllEvents(client *mongo.Client) {
 	db := client.Database("etickets")
 	collection := db.Collection("events")
 
-	collection.DeleteMany(context.Background(), bson.D())
+	collection.DeleteMany(context.Background(), bson.D{})
 }
+
 
 // Get all the data
 func getAllEventsAdmin(client *mongo.Client) []User {

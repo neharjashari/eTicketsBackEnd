@@ -37,8 +37,7 @@ func main() {
 	router.HandleFunc("/event/{token}", getEventsHandler).Methods("GET")
 	router.HandleFunc("/event/{token}/{id}", getEventHandler).Methods("GET")
 
-	router.HandleFunc("/admin", deleteAllAdmin).Methods("DELETE")
-	router.HandleFunc("/admin", getAllAdmin).Methods("GET")
+	router.HandleFunc("/admin", adminHandler)
 
 	//// Set http to listen and serve for different requests in the port found in the GetPort() function
 	//err := http.ListenAndServe(GetPort(), router)
@@ -52,6 +51,11 @@ func main() {
 func infoHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
 
 	metaInfo := &MetaInformation{}
 
@@ -71,6 +75,11 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 func createEventHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
 
 	urlVars := mux.Vars(r)
 
@@ -95,11 +104,11 @@ func createEventHandler(w http.ResponseWriter, r *http.Request) {
 	collection := client.Database("etickets").Collection("events")
 
 	//Checking for duplicates
-	duplicate := checkForDuplicates(client, event.Title, token)
+	duplicate, response := checkForDuplicates(client, event.ID, event.Title, token)
 
 	if duplicate {
 
-		http.Error(w, "409 Conflict - The Event you entered is already in our database!", http.StatusConflict)
+		http.Error(w, "409 Conflict - " + response, http.StatusConflict)
 		return
 
 	} else {
@@ -130,6 +139,11 @@ func getEventsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	if r.Method != http.MethodGet {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
+
 	urlVars := mux.Vars(r)
 	token := urlVars["token"]
 
@@ -147,6 +161,11 @@ func getEventsHandler(w http.ResponseWriter, r *http.Request) {
 func getEventHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
 
 	urlVars := mux.Vars(r)
 	token := urlVars["token"]
@@ -170,36 +189,41 @@ func getEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteAllAdmin(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Content-Type", "application/json")
+//-----------------------------------------------------------------------
+func adminHandler(w http.ResponseWriter, r *http.Request) {
 
-	client := mongoConnect()
+	switch r.Method {
 
-	deleteAllEvents(client)
+	case "GET":
+		w.Header().Set("Content-Type", "application/json")
 
-	response := "All events are deleted!"
+		client := mongoConnect()
 
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		fmt.Println("Error made while encoding with JSON, : ", err)
+		all := getAllEventsAdmin(client)
+
+		err := json.NewEncoder(w).Encode(all)
+		if err != nil {
+			fmt.Println("Error made while encoding with JSON, : ", err)
+			return
+		}
+
+	case "DELETE":
+		client := mongoConnect()
+
+		deleteAllEvents(client)
+
+		response := "All events are deleted!"
+
+		err := json.NewEncoder(w).Encode(response)
+		if err != nil {
+			fmt.Println("Error made while encoding with JSON, : ", err)
+			return
+		}
+
+	default:
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
 		return
-	}
-}
 
-func getAllAdmin(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
-
-	client := mongoConnect()
-
-	getAllEventsAdmin(client)
-
-	response := "All events are deleted!"
-
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		fmt.Println("Error made while encoding with JSON, : ", err)
-		return
 	}
 }
