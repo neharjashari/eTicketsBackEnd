@@ -28,22 +28,35 @@ type MetaInformation struct {
 	Version string   `json:"version"`
 }
 
+//  // Get the Port from the environment so we can run on Heroku
+//  func GetPort() string {
+//  	var port = os.Getenv("PORT")
+//  	// Set a default port if there is nothing in the environment
+//  	if port == "" {
+//  		port = "4747"
+//  		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
+//  	}
+//  	return ":" + port
+//  }
+
+
 func main() {
 
 	router := mux.NewRouter()
 
 	router.HandleFunc("/info", infoHandler).Methods("GET")
+	router.HandleFunc("/events", getAllEventsHandler).Methods("GET")
 	router.HandleFunc("/event/{token}", createEventHandler).Methods("POST")
 	router.HandleFunc("/event/{token}", getEventsHandler).Methods("GET")
 	router.HandleFunc("/event/{token}/{id}", getEventHandler).Methods("GET")
 
 	router.HandleFunc("/admin", adminHandler)
 
-	//// Set http to listen and serve for different requests in the port found in the GetPort() function
-	//err := http.ListenAndServe(GetPort(), router)
-	//if err != nil {
-	//	log.Fatal("ListenAndServe: ", err)
-	//}
+	// // Set http to listen and serve for different requests in the port found in the GetPort() function
+	// err := http.ListenAndServe(GetPort(), router)
+	// if err != nil {
+	// 	log.Fatal("ListenAndServe: ", err)
+	// }
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
@@ -186,6 +199,27 @@ func getEventHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+}
+
+
+func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
+
+	client := mongoConnect()
+
+	events := getAllEventsForMainActivity(client)
+
+	err := json.NewEncoder(w).Encode(events)
+	if err != nil {
+		fmt.Println("Error made while encoding with JSON, : ", err)
+		return
 	}
 }
 

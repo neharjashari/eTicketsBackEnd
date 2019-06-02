@@ -16,7 +16,7 @@ func mongoConnect() *mongo.Client {
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-	//clientOptions := options.Client().ApplyURI("mongodb://neharjashari:nerkoid17051998@ds263856.mlab.com:63856/?authSource=etickets")
+	// clientOptions := options.Client().ApplyURI("mongodb://neharjashari:nerkoid17051998@ds263856.mlab.com:63856/?authSource=etickets")
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -38,7 +38,7 @@ func mongoConnect() *mongo.Client {
 }
 
 
-// Get all tracks
+// Get all tracks with token
 func getAllEvents(client *mongo.Client, token string) []Event {
 	db := client.Database("etickets")
 	collection := db.Collection("events")
@@ -62,6 +62,33 @@ func getAllEvents(client *mongo.Client, token string) []Event {
 	}
 
 	return events
+}
+
+
+// Get all tracks
+func getAllEventsForMainActivity(client *mongo.Client) []Event {
+	db := client.Database("etickets")
+	collection := db.Collection("events")
+
+	cursor, err := collection.Find(context.Background(), bson.D{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cursor.Close(context.Background())
+
+	userEvent := User{}
+	all := []Event{}
+
+	for cursor.Next(context.Background()) {
+		err := cursor.Decode(&userEvent)
+		if err != nil {
+			log.Fatal(err)
+		}
+		all = append(all, userEvent.Event)
+	}
+
+	return all
 }
 
 
