@@ -28,16 +28,16 @@ type MetaInformation struct {
 	Version string   `json:"version"`
 }
 
-//  // Get the Port from the environment so we can run on Heroku
-//  func GetPort() string {
-//  	var port = os.Getenv("PORT")
-//  	// Set a default port if there is nothing in the environment
-//  	if port == "" {
-//  		port = "4747"
-//  		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
-//  	}
-//  	return ":" + port
-//  }
+ //// Get the Port from the environment so we can run on Heroku
+ //func GetPort() string {
+ //	var port = os.Getenv("PORT")
+ //	// Set a default port if there is nothing in the environment
+ //	if port == "" {
+ //		port = "4747"
+ //		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
+ //	}
+ //	return ":" + port
+ //}
 
 
 func main() {
@@ -52,11 +52,11 @@ func main() {
 
 	router.HandleFunc("/admin", adminHandler)
 
-	// // Set http to listen and serve for different requests in the port found in the GetPort() function
-	// err := http.ListenAndServe(GetPort(), router)
-	// if err != nil {
-	// 	log.Fatal("ListenAndServe: ", err)
-	// }
+	//// Set http to listen and serve for different requests in the port found in the GetPort() function
+	//err := http.ListenAndServe(GetPort(), router)
+	//if err != nil {
+	//	log.Fatal("ListenAndServe: ", err)
+	//}
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
@@ -106,6 +106,13 @@ func createEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := urlVars["token"]
+
+	//// Validate token
+	//valid := validateToken(token)
+	//if !valid {
+	//	http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
+	//	return
+	//}
 
 	userEvent.Token = token
 	userEvent.Event = event
@@ -160,6 +167,13 @@ func getEventsHandler(w http.ResponseWriter, r *http.Request) {
 	urlVars := mux.Vars(r)
 	token := urlVars["token"]
 
+	//// Validate token
+	//valid := validateToken(token)
+	//if !valid {
+	//	http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
+	//	return
+	//}
+
 	client := mongoConnect()
 
 	events := getAllEvents(client, token)
@@ -182,6 +196,13 @@ func getEventHandler(w http.ResponseWriter, r *http.Request) {
 
 	urlVars := mux.Vars(r)
 	token := urlVars["token"]
+
+	//// Validate token
+	//valid := validateToken(token)
+	//if !valid {
+	//	http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
+	//	return
+	//}
 
 	client := mongoConnect()
 
@@ -225,6 +246,8 @@ func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 
 
 //-----------------------------------------------------------------------
+// ADMIN
+//-----------------------------------------------------------------------
 func adminHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
@@ -261,3 +284,19 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+
+
+
+//func validateToken(token string) bool {
+//
+//	valid := false
+//
+//	// Regular Expression to check for Token validity, the ID can only be with the same format as UUID
+//	regExToken, _ := regexp.Compile("/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i")
+//
+//	if regExToken.MatchString(token) {
+//		valid = true
+//	}
+//
+//	return valid
+//}

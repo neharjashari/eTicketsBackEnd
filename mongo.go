@@ -16,7 +16,7 @@ func mongoConnect() *mongo.Client {
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-	// clientOptions := options.Client().ApplyURI("mongodb://neharjashari:nerkoid17051998@ds263856.mlab.com:63856/?authSource=etickets")
+	//clientOptions := options.Client().ApplyURI("mongodb://neharjashari:nerkoid17051998@ds263856.mlab.com:63856/?authSource=etickets")
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
