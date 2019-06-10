@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"regexp"
 )
 
 type Event struct {
@@ -15,7 +16,7 @@ type Event struct {
 	Author      string `json:"author"`
 	DateCreated string `json:"date_created"`
 	Content     string `json:"content"`
-	Photo       string `json:"photo"`
+	Price       string `json:"price"`
 }
 
 type User struct {
@@ -107,12 +108,12 @@ func createEventHandler(w http.ResponseWriter, r *http.Request) {
 
 	token := urlVars["token"]
 
-	//// Validate token
-	//valid := validateToken(token)
-	//if !valid {
-	//	http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
-	//	return
-	//}
+	// Validate token
+	valid := validateToken(token)
+	if !valid {
+		http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
+		return
+	}
 
 	userEvent.Token = token
 	userEvent.Event = event
@@ -167,12 +168,12 @@ func getEventsHandler(w http.ResponseWriter, r *http.Request) {
 	urlVars := mux.Vars(r)
 	token := urlVars["token"]
 
-	//// Validate token
-	//valid := validateToken(token)
-	//if !valid {
-	//	http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
-	//	return
-	//}
+	// Validate token
+	valid := validateToken(token)
+	if !valid {
+		http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
+		return
+	}
 
 	client := mongoConnect()
 
@@ -197,12 +198,12 @@ func getEventHandler(w http.ResponseWriter, r *http.Request) {
 	urlVars := mux.Vars(r)
 	token := urlVars["token"]
 
-	//// Validate token
-	//valid := validateToken(token)
-	//if !valid {
-	//	http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
-	//	return
-	//}
+	// Validate token
+	valid := validateToken(token)
+	if !valid {
+		http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
+		return
+	}
 
 	client := mongoConnect()
 
@@ -287,16 +288,16 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 
 
 
-//func validateToken(token string) bool {
-//
-//	valid := false
-//
-//	// Regular Expression to check for Token validity, the ID can only be with the same format as UUID
-//	regExToken, _ := regexp.Compile("/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i")
-//
-//	if regExToken.MatchString(token) {
-//		valid = true
-//	}
-//
-//	return valid
-//}
+func validateToken(token string) bool {
+
+	valid := false
+
+	// Regular Expression to check for Token validity, the ID can only be with the same format as UUID
+	regExToken, _ := regexp.Compile("/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/")
+
+	if !regExToken.MatchString(token) {
+		valid = true
+	}
+
+	return valid
+}
