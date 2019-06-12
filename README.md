@@ -4,7 +4,7 @@ Back End service for the Android application eTickets. This project was worked f
 
 The app is not deployed anywhere it works only on "localhost:8000" right now.
 
-
+The token provided needs to be the same format as a UUID v4.
 
 ## Instructions
 
