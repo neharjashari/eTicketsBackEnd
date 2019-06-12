@@ -38,10 +38,37 @@ func mongoConnect() *mongo.Client {
 }
 
 
-// Get all tracks with token
+// Get all events with token
 func getAllEvents(client *mongo.Client, token string) []Event {
 	db := client.Database("etickets")
 	collection := db.Collection("events")
+
+	cursor, err := collection.Find(context.Background(), bson.D{{"token", token}})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cursor.Close(context.Background())
+
+	userEvent := User{}
+	events := []Event{}
+
+	for cursor.Next(context.Background()) {
+		err := cursor.Decode(&userEvent)
+		if err != nil {
+			log.Fatal(err)
+		}
+		events = append(events, userEvent.Event)
+	}
+
+	return events
+}
+
+
+// Get all tickets with token
+func getAllTickets(client *mongo.Client, token string) []Event {
+	db := client.Database("etickets")
+	collection := db.Collection("tickets")
 
 	cursor, err := collection.Find(context.Background(), bson.D{{"token", token}})
 	if err != nil {

@@ -50,6 +50,8 @@ func main() {
 	router.HandleFunc("/event/{token}", createEventHandler).Methods("POST")
 	router.HandleFunc("/event/{token}", getEventsHandler).Methods("GET")
 	router.HandleFunc("/event/{token}/{id}", getEventHandler).Methods("GET")
+	router.HandleFunc("/event/{token}/tickets", getTicketsHandler).Methods("GET")
+	router.HandleFunc("/event/{token}/tickets", createTicketsHandler).Methods("POST")
 
 	router.HandleFunc("/admin", adminHandler)
 
@@ -242,6 +244,106 @@ func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error made while encoding with JSON, : ", err)
 		return
+	}
+}
+
+
+func getTicketsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
+
+	urlVars := mux.Vars(r)
+	token := urlVars["token"]
+
+	// Validate token
+	valid := validateToken(token)
+	if !valid {
+		http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
+		return
+	}
+
+	client := mongoConnect()
+
+	events := getAllTickets(client, token)
+
+	err := json.NewEncoder(w).Encode(events)
+	if err != nil {
+		fmt.Println("Error made while encoding with JSON, : ", err)
+		return
+	}
+}
+
+
+func createTicketsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
+
+	urlVars := mux.Vars(r)
+
+	userEvent := User{}
+	event := Event{}
+
+	var error = json.NewDecoder(r.Body).Decode(&event)
+	if error != nil {
+		fmt.Println("Error made: ", error)
+		return
+	}
+
+	token := urlVars["token"]
+
+	// Validate token
+	valid := validateToken(token)
+	if !valid {
+		http.Error(w, "400 Bad Request - The token you wrote is not valid.", http.StatusBadRequest)
+		return
+	}
+
+	userEvent.Token = token
+	userEvent.Event = event
+
+	// Connecting to DB
+	client := mongoConnect()
+
+	// Specifying the specific collection which is going to be used
+	collection := client.Database("etickets").Collection("tickets")
+
+	//Checking for duplicates
+	duplicate, response := checkForDuplicates(client, event.ID, event.Title, token)
+
+	if duplicate {
+
+		http.Error(w, "409 Conflict - " + response, http.StatusConflict)
+		return
+
+	} else {
+
+		res, err := collection.InsertOne(context.Background(), userEvent)
+		if err != nil {
+			log.Fatal(err)
+			log.Print("Error")
+		}
+
+		id := res.InsertedID
+
+		if id == nil {
+			http.Error(w, "", 300)
+		}
+
+		log.Print(id)
+
+		err = json.NewEncoder(w).Encode(event.ID)
+		if err != nil {
+			fmt.Println("Error made while encoding with JSON, : ", err)
+			return
+		}
 	}
 }
 
