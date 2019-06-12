@@ -48,10 +48,10 @@ func main() {
 	router.HandleFunc("/info", infoHandler).Methods("GET")
 	router.HandleFunc("/events", getAllEventsHandler).Methods("GET")
 	router.HandleFunc("/event/{token}", createEventHandler).Methods("POST")
-	router.HandleFunc("/event/{token}", getEventsHandler).Methods("GET")
-	router.HandleFunc("/event/{token}/{id}", getEventHandler).Methods("GET")
 	router.HandleFunc("/event/{token}/tickets", getTicketsHandler).Methods("GET")
 	router.HandleFunc("/event/{token}/tickets", createTicketsHandler).Methods("POST")
+	router.HandleFunc("/event/{token}", getEventsHandler).Methods("GET")
+	router.HandleFunc("/event/{token}/{id}", getEventHandler).Methods("GET")
 
 	router.HandleFunc("/admin", adminHandler)
 
@@ -316,7 +316,7 @@ func createTicketsHandler(w http.ResponseWriter, r *http.Request) {
 	collection := client.Database("etickets").Collection("tickets")
 
 	//Checking for duplicates
-	duplicate, response := checkForDuplicates(client, event.ID, event.Title, token)
+	duplicate, response := checkForTicketDuplicates(client, event.ID, event.Title, token)
 
 	if duplicate {
 

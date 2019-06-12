@@ -139,6 +139,26 @@ func checkForDuplicates(client *mongo.Client, ID string, Title string, token str
 }
 
 
+func checkForTicketDuplicates(client *mongo.Client, ID string, Title string, token string) (bool, string) {
+
+	events := getAllTickets(client, token)
+	bool := false
+	response := ""
+
+	for i := range events {
+		if events[i].ID == ID {
+			bool = true
+			response = "An event with that ID already is in your database."
+		} else if events[i].Title == Title {
+			bool = true
+			response = "An event with that Title already is in your database."
+		}
+	}
+
+	return bool, response
+}
+
+
 // Delete all events
 func deleteAllEvents(client *mongo.Client) {
 	db := client.Database("etickets")
