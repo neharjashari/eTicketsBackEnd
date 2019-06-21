@@ -55,6 +55,12 @@ Returns the data for the event with the ID specified in the path
 
 
 
+### GET     /event/\<token\>/tickets
+  
+Returns the tickets purchased from user with the specific token
+
+
+
 
 There are some other API calls that can only be made by the admin and are not going to be shown here.
 
