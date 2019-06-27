@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	// "math/rand"
+	// "strconv"
 )
 
 type Event struct {
@@ -47,6 +49,7 @@ func main() {
 
 	router.HandleFunc("/info", infoHandler).Methods("GET")
 	router.HandleFunc("/events", getAllEventsHandler).Methods("GET")
+	router.HandleFunc("/events/{id}", getEventWithIdHandler).Methods("GET")
 	router.HandleFunc("/event/{token}", createEventHandler).Methods("POST")
 	router.HandleFunc("/event/{token}/tickets", getTicketsHandler).Methods("GET")
 	router.HandleFunc("/event/{token}/tickets", createTicketsHandler).Methods("POST")
@@ -54,6 +57,7 @@ func main() {
 	router.HandleFunc("/event/{token}/{id}", getEventHandler).Methods("GET")
 
 	router.HandleFunc("/admin", adminHandler)
+	router.HandleFunc("/admin/tickets", adminTicketHandler)
 
 	//// Set http to listen and serve for different requests in the port found in the GetPort() function
 	//err := http.ListenAndServe(GetPort(), router)
@@ -248,6 +252,37 @@ func getAllEventsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+func getEventWithIdHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
+
+	urlVars := mux.Vars(r)
+	
+	client := mongoConnect()
+
+	events := getAllEventsForMainActivity(client)
+
+	event := Event{}
+
+	for i := range events {
+		if events[i].ID == urlVars["id"] {
+			event = events[i]
+
+			err := json.NewEncoder(w).Encode(event)
+			if err != nil {
+				fmt.Println("Error made while encoding with JSON, : ", err)
+				return
+			}
+		}
+	}
+}
+
+
 func getTicketsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -389,6 +424,30 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+func adminTicketHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodDelete {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
+
+	client := mongoConnect()
+
+	deleteAllTickets(client)
+
+	response := "All tickets are deleted!"
+
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println("Error made while encoding with JSON, : ", err)
+		return
+	}
+	
+}
+
+
 
 func validateToken(token string) bool {
 
@@ -403,3 +462,10 @@ func validateToken(token string) bool {
 
 	return valid
 }
+
+
+// func randomID() string {
+// 	randomNumber := rand.Intn(1000)
+// 	strRandom := strconv.Itoa(randomNumber)
+// 	return strRandom
+// }

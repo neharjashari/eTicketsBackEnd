@@ -167,6 +167,14 @@ func deleteAllEvents(client *mongo.Client) {
 	collection.DeleteMany(context.Background(), bson.D{})
 }
 
+// Delete all events
+func deleteAllTickets(client *mongo.Client) {
+	db := client.Database("etickets")
+	collection := db.Collection("tickets")
+
+	collection.DeleteMany(context.Background(), bson.D{})
+}
+
 
 // Get all the data
 func getAllEventsAdmin(client *mongo.Client) []User {
