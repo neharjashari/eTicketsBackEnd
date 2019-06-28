@@ -167,6 +167,16 @@ func deleteAllEvents(client *mongo.Client) {
 	collection.DeleteMany(context.Background(), bson.D{})
 }
 
+
+// Delete an event
+func deleteEvent(client *mongo.Client, id string) {
+	db := client.Database("etickets")
+	collection := db.Collection("events")
+
+	collection.DeleteOne(context.Background(), bson.M{"id":id})
+}
+
+
 // Delete all events
 func deleteAllTickets(client *mongo.Client) {
 	db := client.Database("etickets")

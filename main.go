@@ -58,6 +58,7 @@ func main() {
 
 	router.HandleFunc("/admin", adminHandler)
 	router.HandleFunc("/admin/tickets", adminTicketHandler)
+	router.HandleFunc("/admin/event/{id}", deleteEventHandler)
 
 	//// Set http to listen and serve for different requests in the port found in the GetPort() function
 	//err := http.ListenAndServe(GetPort(), router)
@@ -262,7 +263,7 @@ func getEventWithIdHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	urlVars := mux.Vars(r)
-	
+
 	client := mongoConnect()
 
 	events := getAllEventsForMainActivity(client)
@@ -438,6 +439,34 @@ func adminTicketHandler(w http.ResponseWriter, r *http.Request) {
 	deleteAllTickets(client)
 
 	response := "All tickets are deleted!"
+
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println("Error made while encoding with JSON, : ", err)
+		return
+	}
+	
+}
+
+
+func deleteEventHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodDelete {
+		http.Error(w, "400 - Bad Request, Wrong method", http.StatusBadRequest)
+		return
+	}
+
+	urlVars := mux.Vars(r)
+
+	client := mongoConnect()
+
+	id := urlVars["id"]
+
+	deleteEvent(client, id)
+
+	response := "The event with ID: " + id + " , has been deleted!"
 
 	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
